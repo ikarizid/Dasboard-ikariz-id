@@ -6,6 +6,7 @@ import { OwnerDashboard } from "./pages/owner/OwnerDashboard";
 import { ResellerManagement } from "./pages/owner/ResellerManagement";
 import { OwnerOrders } from "./pages/owner/OwnerOrders";
 import { InvoiceSettings } from "./pages/owner/InvoiceSettings";
+import { Pembayaran } from "./pages/owner/Pembayaran";
 import { ResellerDashboard } from "./pages/reseller/ResellerDashboard";
 import { ResellerOrders } from "./pages/reseller/ResellerOrders";
 import { NewOrder } from "./pages/NewOrder";
@@ -21,6 +22,7 @@ export const router = createBrowserRouter([
       { path: "resellers", Component: ResellerManagement },
       { path: "orders", Component: OwnerOrders },
       { path: "new-order", Component: NewOrder },
+      { path: "pembayaran", Component: Pembayaran },
       { path: "invoice/:orderId", Component: Invoice },
       { path: "invoice-settings", Component: InvoiceSettings },
     ],

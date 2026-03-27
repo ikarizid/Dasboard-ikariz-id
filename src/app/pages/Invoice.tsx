@@ -39,7 +39,7 @@ export function Invoice() {
           setTitleValue(currentOrder.invoiceTitle || "Faktur Pembayaran");
           setNotesValue(currentOrder.invoiceNotes || "");
           setInvoiceNoValue(currentOrder.invoiceNumber || "");
-          setPaymentStatus(currentOrder.status === "Done" ? "Lunas" : "Belum Lunas");
+          setPaymentStatus((currentOrder.payment_status as "Lunas" | "Belum Lunas") || "Belum Lunas");
         }
       } catch (e) {
         toast.error("Gagal mengambil data faktur");
@@ -70,8 +70,11 @@ export function Invoice() {
     }
   };
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(amount);
+  const formatCurrency = (amount: string | number) => {
+    const num = Number(amount);
+    if (isNaN(num)) return amount;
+    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
+  };
 
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
@@ -79,7 +82,8 @@ export function Invoice() {
   const buildInvoiceHTML = (mode: "print" | "png" = "print") => {
     if (!order) return "";
     const commission = order.commissionAmount || 0;
-    const netIncome = order.price - commission;
+    const priceNum = Number(order.price) || 0;
+    const netIncome = priceNum - commission;
     const isOwner = currentUser?.role === "owner";
 
     return `<!DOCTYPE html>
@@ -618,7 +622,8 @@ export function Invoice() {
   }
 
   const commission = order.commissionAmount || 0;
-  const netIncome = order.price - commission;
+  const priceNum = Number(order.price) || 0;
+  const netIncome = priceNum - commission;
 
   return (
     <div className="p-8 max-w-3xl mx-auto space-y-6">
@@ -638,7 +643,13 @@ export function Invoice() {
           )}
           <Button
             variant="outline"
-            onClick={() => setPaymentStatus(s => s === "Lunas" ? "Belum Lunas" : "Lunas")}
+            onClick={async () => {
+              const newStatus = paymentStatus === "Lunas" ? "Belum Lunas" : "Lunas";
+              setPaymentStatus(newStatus);
+              if (order) {
+                await saveField("payment_status" as any, newStatus);
+              }
+            }}
             className={paymentStatus === "Lunas" ? "border-green-500 text-green-700" : "border-red-400 text-red-600"}
           >
             Status: {paymentStatus}

@@ -85,7 +85,9 @@ export const getSupabaseOrders = async (): Promise<Order[]> => {
     commissionPaid: o.commission_paid,
     invoiceTitle: o.invoice_title,
     invoiceNotes: o.invoice_notes,
-    file_url: o.file_url
+    file_url: o.file_url,
+    payment_status: o.payment_status,
+    amount_paid: o.amount_paid
   }));
 };
 
@@ -111,7 +113,9 @@ export const createSupabaseOrder = async (order: Partial<Order>) => {
     commission_paid: order.commissionPaid,
     invoice_title: order.invoiceTitle,
     invoice_notes: order.invoiceNotes,
-    file_url: order.file_url 
+    file_url: order.file_url,
+    payment_status: order.payment_status,
+    amount_paid: order.amount_paid
   }).select().single();
   if (error) throw error;
   return data;
@@ -129,6 +133,8 @@ export const updateSupabaseOrder = async (id: string, order: Partial<Order>) => 
   if (order.notes !== undefined) updates.notes = order.notes;
   if (order.commissionAmount !== undefined) updates.commission_amount = order.commissionAmount;
   if (order.file_url !== undefined) updates.file_url = order.file_url;
+  if (order.payment_status !== undefined) updates.payment_status = order.payment_status;
+  if (order.amount_paid !== undefined) updates.amount_paid = order.amount_paid;
   
   const { data, error } = await supabase.from('orders').update(updates).eq('id', id).select().single();
   if (error) throw error;

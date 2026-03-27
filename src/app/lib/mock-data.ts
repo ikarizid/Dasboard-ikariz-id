@@ -17,7 +17,7 @@ export interface Order {
   subject: string;
   orderDate: string;
   deadline: string;
-  price: number;
+  price: string | number;
   priority: "Tinggi" | "Sedang" | "Rendah";
   status: "Pending" | "In Progress" | "Done" | "Cancelled";
   notes: string;
@@ -28,6 +28,8 @@ export interface Order {
   invoiceTitle?: string;
   invoiceNotes?: string;
   file_url?: string;
+  payment_status?: string;
+  amount_paid?: string;
 }
 
 export interface RevenueData {

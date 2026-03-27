@@ -120,12 +120,14 @@ export function OwnerOrders() {
     }
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: string | number) => {
+    const num = Number(amount);
+    if (isNaN(num)) return amount;
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0,
-    }).format(amount);
+    }).format(num);
   };
 
   const getPriorityBadge = (priority: string) => {
@@ -176,6 +178,7 @@ export function OwnerOrders() {
                   <TableHead>Deadline</TableHead>
                   <TableHead>Harga</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Pembayaran</TableHead>
                   <TableHead>File</TableHead>
                   <TableHead>Aksi</TableHead>
                 </TableRow>
@@ -209,6 +212,11 @@ export function OwnerOrders() {
                             <SelectItem value="Cancelled">Cancelled</SelectItem>
                           </SelectContent>
                         </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={order.payment_status === "Lunas" ? "default" : "destructive"} className={order.payment_status === "Lunas" ? "bg-green-100 text-green-800 hover:bg-green-200" : ""}>
+                          {order.payment_status || "Belum Lunas"}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         {order.file_url ? (

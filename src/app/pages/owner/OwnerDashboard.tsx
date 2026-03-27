@@ -60,13 +60,13 @@ export function OwnerDashboard() {
     const totalOrders = orders.length;
     const totalRevenue = orders
       .filter(o => o.status !== "Cancelled")
-      .reduce((sum, order) => sum + order.price, 0);
+      .reduce((sum, order) => sum + (Number(order.price) || 0), 0);
     
     const totalCommission = orders
       .filter(o => o.status !== "Cancelled")
       .reduce((sum, order) => {
         const reseller = resellers.find(r => r.id === order.resellerId);
-        const commission = reseller ? (order.price * (reseller.commissionRate || 0)) / 100 : 0;
+        const commission = reseller ? ((Number(order.price) || 0) * (reseller.commissionRate || 0)) / 100 : 0;
         return sum + commission;
       }, 0);
     
@@ -89,7 +89,7 @@ export function OwnerDashboard() {
       
       const month = new Date(order.orderDate).toLocaleString('id-ID', { month: 'short' });
       if (monthlyData[month] !== undefined) {
-        monthlyData[month] += order.price;
+        monthlyData[month] += (Number(order.price) || 0);
       }
     });
 
@@ -102,12 +102,14 @@ export function OwnerDashboard() {
   // Recent orders
   const recentOrders = orders.slice(0, 5);
 
-  const formatCurrency = (amount: number) => {
+  const safeFormatCurrency = (val: string | number) => {
+    const num = Number(val);
+    if (isNaN(num)) return val;
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0,
-    }).format(amount);
+    }).format(num);
   };
 
   const getStatusBadge = (status: string) => {
@@ -163,7 +165,7 @@ export function OwnerDashboard() {
             <DollarSign className="w-4 h-4 text-slate-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold">{formatCurrency(metrics.totalRevenue)}</div>
+            <div className="text-2xl font-semibold">{safeFormatCurrency(metrics.totalRevenue)}</div>
             <p className="text-xs text-slate-500 mt-1">Revenue kotor</p>
           </CardContent>
         </Card>
@@ -174,7 +176,7 @@ export function OwnerDashboard() {
             <Wallet className="w-4 h-4 text-slate-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold">{formatCurrency(metrics.totalCommission)}</div>
+            <div className="text-2xl font-semibold">{safeFormatCurrency(metrics.totalCommission)}</div>
             <p className="text-xs text-slate-500 mt-1">Total komisi reseller</p>
           </CardContent>
         </Card>
@@ -185,7 +187,7 @@ export function OwnerDashboard() {
             <TrendingUp className="w-4 h-4 text-slate-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold">{formatCurrency(metrics.netProfit)}</div>
+            <div className="text-2xl font-semibold">{safeFormatCurrency(metrics.netProfit)}</div>
             <p className="text-xs text-slate-500 mt-1">Setelah komisi</p>
           </CardContent>
         </Card>
@@ -221,7 +223,7 @@ export function OwnerDashboard() {
               <XAxis dataKey="month" stroke="#64748b" />
               <YAxis stroke="#64748b" />
               <Tooltip 
-                formatter={(value: number) => formatCurrency(value)}
+                formatter={(value: number) => safeFormatCurrency(value)}
                 contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0' }}
               />
               <Legend />
@@ -278,7 +280,7 @@ export function OwnerDashboard() {
                     <TableCell>{order.serviceType}</TableCell>
                     <TableCell>{reseller?.displayName || "-"}</TableCell>
                     <TableCell>{new Date(order.deadline).toLocaleDateString('id-ID')}</TableCell>
-                    <TableCell>{formatCurrency(order.price)}</TableCell>
+                    <TableCell>{safeFormatCurrency(order.price)}</TableCell>
                     <TableCell>{getPriorityBadge(order.priority)}</TableCell>
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
                     <TableCell>

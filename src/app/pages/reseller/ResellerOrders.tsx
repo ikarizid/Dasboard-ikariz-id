@@ -30,12 +30,14 @@ export function ResellerOrders() {
 
   const myOrders = orders.filter(o => o.resellerId === currentUser?.id);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: string | number) => {
+    const num = Number(amount);
+    if (isNaN(num)) return amount;
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0,
-    }).format(amount);
+    }).format(num);
   };
 
   const getStatusBadge = (status: string) => {
@@ -109,12 +111,14 @@ export function ResellerOrders() {
                     <TableHead>Komisi Saya</TableHead>
                     <TableHead>Prioritas</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Pembayaran</TableHead>
                     <TableHead>Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {myOrders.map(order => {
-                    const orderCommission = (order.price * (currentUser?.commissionRate || 0)) / 100;
+                  {myOrders.map((order: Order) => {
+                    const priceNum = Number(order.price) || 0;
+                    const orderCommission = (priceNum * (currentUser?.commissionRate || 0)) / 100;
                     return (
                       <TableRow key={order.id}>
                         <TableCell className="font-medium">{order.invoiceNumber}</TableCell>
@@ -127,6 +131,11 @@ export function ResellerOrders() {
                         <TableCell>{formatCurrency(orderCommission)}</TableCell>
                         <TableCell>{getPriorityBadge(order.priority)}</TableCell>
                         <TableCell>{getStatusBadge(order.status)}</TableCell>
+                        <TableCell>
+                          <Badge variant={order.payment_status === "Lunas" ? "default" : "destructive"} className={order.payment_status === "Lunas" ? "bg-green-100 text-green-800" : ""}>
+                            {order.payment_status || "Belum Lunas"}
+                          </Badge>
+                        </TableCell>
                         <TableCell>
                           <Link to={`/reseller/invoice/${order.id}`}>
                             <Button variant="ghost" size="sm">

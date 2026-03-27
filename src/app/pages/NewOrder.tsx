@@ -78,7 +78,7 @@ export function NewOrder() {
         priority: formData.priority as any,
         status: "Pending" as const,
         notes: formData.notes,
-        resellerId: isNoReseller ? null : formData.resellerId,
+        resellerId: formData.resellerId === "owner" ? undefined : formData.resellerId,
         invoiceNumber,
         invoiceTitle: "Faktur Pembayaran",
         invoiceNotes: "",
@@ -178,7 +178,13 @@ export function NewOrder() {
 
               <div className="space-y-2">
                 <Label>Harga (IDR) *</Label>
-                <Input type="number" min="0" step="1000" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} placeholder="500000" required />
+                <Input
+                  type="text"
+                  placeholder="Contoh: 500000 atau Seikhlasnya"
+                  value={formData.price}
+                  onChange={e => setFormData({ ...formData, price: e.target.value })}
+                  required
+                />
               </div>
 
               {!isNoReseller && (
