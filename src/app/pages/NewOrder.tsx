@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -6,15 +6,18 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { getCurrentUser, getOrders, setOrders, getUsers, generateInvoiceNumber } from "../lib/mock-data";
+import { getCurrentUser, generateInvoiceNumber, User } from "../lib/mock-data";
+import { createSupabaseOrder, uploadFileToSupabase, getSupabaseUsers } from "../lib/api";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2, UploadCloud } from "lucide-react";
 
 export function NewOrder() {
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
-  const users = getUsers();
-  const resellers = users.filter(u => u.role === "reseller");
+  const [resellers, setResellers] = useState<User[]>([]);
+  const [loadingInitial, setLoadingInitial] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
     clientName: "",
@@ -32,41 +35,77 @@ export function NewOrder() {
   const isOwner = currentUser?.role === "owner";
   const isNoReseller = formData.resellerId === "owner" || formData.resellerId === "";
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const orders = getOrders();
-    const invoiceNumber = generateInvoiceNumber();
-
-    const newOrder = {
-      id: `INV-${Date.now()}`,
-      clientName: formData.clientName,
-      serviceType: formData.serviceType as any,
-      subject: formData.subject,
-      orderDate: formData.orderDate,
-      deadline: formData.deadline,
-      price: Number(formData.price),
-      commissionAmount: isNoReseller ? 0 : Number(formData.commissionAmount || 0),
-      commissionPaid: false,
-      priority: formData.priority as any,
-      status: "Pending" as const,
-      notes: formData.notes,
-      resellerId: isNoReseller ? "" : formData.resellerId,
-      invoiceNumber,
-      invoiceTitle: "Faktur Pembayaran",
-      invoiceNotes: "",
+  useEffect(() => {
+    const fetchResellers = async () => {
+      try {
+        const users = await getSupabaseUsers();
+        setResellers(users.filter(u => u.role === "reseller" && u.active));
+      } catch (e) {
+        toast.error("Gagal mengambil daftar reseller");
+      } finally {
+        setLoadingInitial(false);
+      }
     };
+    if (isOwner) fetchResellers();
+    else setLoadingInitial(false);
+  }, [isOwner]);
 
-    setOrders([newOrder, ...orders]);
-    toast.success("Order berhasil ditambahkan! Mengarahkan ke faktur...");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    
+    try {
+      const invoiceNumber = generateInvoiceNumber();
 
-    if (currentUser?.role === "owner") navigate(`/owner/invoice/${newOrder.id}`);
-    else navigate(`/reseller/invoice/${newOrder.id}`);
+      let file_url = "";
+      if (file) {
+        // Create unique path based on invoice
+        const ext = file.name.split('.').pop();
+        const filePath = `${invoiceNumber}/${Date.now()}.${ext}`;
+        file_url = await uploadFileToSupabase(file, filePath);
+        toast.success("File tugas berhasil diunggah!");
+      }
+
+      const newOrder = {
+        clientName: formData.clientName,
+        serviceType: formData.serviceType as any,
+        subject: formData.subject,
+        orderDate: formData.orderDate,
+        deadline: formData.deadline,
+        price: Number(formData.price),
+        commissionAmount: isNoReseller ? 0 : Number(formData.commissionAmount || 0),
+        commissionPaid: false,
+        priority: formData.priority as any,
+        status: "Pending" as const,
+        notes: formData.notes,
+        resellerId: isNoReseller ? null : formData.resellerId,
+        invoiceNumber,
+        invoiceTitle: "Faktur Pembayaran",
+        invoiceNotes: "",
+        file_url
+      };
+
+      const savedOrder = await createSupabaseOrder(newOrder);
+      toast.success("Order berhasil ditambahkan! Mengarahkan ke faktur...");
+
+      if (currentUser?.role === "owner") navigate(`/owner/invoice/${savedOrder.id}`);
+      else navigate(`/reseller/invoice/${savedOrder.id}`);
+      
+    } catch (error: any) {
+      toast.error("Gagal menyimpan order: " + error.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleBack = () => {
     if (currentUser?.role === "owner") navigate("/owner");
     else navigate("/reseller");
   };
+
+  if (loadingInitial) {
+    return <div className="p-8 flex justify-center items-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
+  }
 
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6">
@@ -119,7 +158,7 @@ export function NewOrder() {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="owner">— Tanpa Reseller (Owner Sendiri)</SelectItem>
-                      {resellers.filter(r => r.active).map(r => (
+                      {resellers.map(r => (
                         <SelectItem key={r.id} value={r.id}>{r.displayName}</SelectItem>
                       ))}
                     </SelectContent>
@@ -161,6 +200,20 @@ export function NewOrder() {
                 </Select>
               </div>
 
+              <div className="space-y-2 md:col-span-2 bg-slate-50 p-4 rounded-lg border border-slate-200 border-dashed">
+                <Label className="flex items-center gap-2 mb-2">
+                  <UploadCloud className="w-4 h-4 text-slate-600" />
+                  Unggah File Pemesan (Opsional)
+                </Label>
+                <Input 
+                  type="file" 
+                  onChange={e => setFile(e.target.files ? e.target.files[0] : null)}
+                  className="bg-white" 
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.png,.jpg,.jpeg"
+                />
+                <p className="text-xs text-slate-500 mt-2">File akan otomatis tersimpan ke sistem ruang penyimpanan Ikariz ID.</p>
+              </div>
+
               <div className="space-y-2 md:col-span-2">
                 <Label>Catatan</Label>
                 <Textarea value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} placeholder="Catatan tambahan tentang order ini..." rows={4} />
@@ -168,10 +221,11 @@ export function NewOrder() {
             </div>
 
             <div className="flex gap-4 pt-4">
-              <Button type="submit" className="flex-1 bg-slate-900 hover:bg-slate-800">
-                Simpan & Lihat Faktur
+              <Button type="submit" disabled={submitting} className="flex-1 bg-slate-900 hover:bg-slate-800">
+                {submitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                {submitting ? "Menyimpan & Mengunggah..." : "Simpan & Lihat Faktur"}
               </Button>
-              <Button type="button" variant="outline" className="flex-1" onClick={handleBack}>
+              <Button type="button" variant="outline" className="flex-1" onClick={handleBack} disabled={submitting}>
                 Batal
               </Button>
             </div>

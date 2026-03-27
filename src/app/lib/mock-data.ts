@@ -27,6 +27,7 @@ export interface Order {
   commissionPaid: boolean;
   invoiceTitle?: string;
   invoiceNotes?: string;
+  file_url?: string;
 }
 
 export interface RevenueData {

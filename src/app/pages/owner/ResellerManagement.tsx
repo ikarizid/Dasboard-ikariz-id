@@ -1,23 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { getUsers, setUsers, getOrders, setOrders } from "../../lib/mock-data";
+import { User, Order } from "../../lib/mock-data";
+import { getSupabaseUsers, createSupabaseReseller, updateSupabaseReseller, getSupabaseOrders, setSupabaseOrderCommissionPaid } from "../../lib/api";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog";
-import { UserPlus, Edit, UserX, UserCheck, Eye, EyeOff, ChevronRight, AlertTriangle } from "lucide-react";
+import { UserPlus, Edit, UserX, UserCheck, Eye, EyeOff, ChevronRight, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function ResellerManagement() {
-  const [users, setUsersState] = useState(getUsers());
+  const [users, setUsersState] = useState<User[]>([]);
+  const [orders, setOrdersState] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
   const [open, setOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedResellerId, setSelectedResellerId] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [ordersTick, setOrdersTick] = useState(0);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -26,8 +30,27 @@ export function ResellerManagement() {
     commissionRate: "",
   });
 
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [fetchedUsers, fetchedOrders] = await Promise.all([
+        getSupabaseUsers(),
+        getSupabaseOrders()
+      ]);
+      setUsersState(fetchedUsers);
+      setOrdersState(fetchedOrders);
+    } catch (error) {
+      toast.error("Gagal mengambil data dari database");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const resellers = users.filter(u => u.role === "reseller");
-  const orders = getOrders();
 
   const resetForm = () => {
     setFormData({ username: "", password: "", displayName: "", commissionRate: "" });
@@ -54,60 +77,79 @@ export function ResellerManagement() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingId) {
-      const updatedUsers = users.map(u =>
-        u.id === editingId
-          ? { ...u, username: formData.username, password: formData.password, displayName: formData.displayName, commissionRate: Number(formData.commissionRate) }
-          : u
-      );
-      setUsers(updatedUsers);
-      setUsersState(updatedUsers);
-      toast.success("Reseller berhasil diperbarui");
-    } else {
-      const newReseller = {
-        id: String(Date.now()),
-        username: formData.username,
-        password: formData.password,
-        role: "reseller" as const,
-        displayName: formData.displayName,
-        commissionRate: Number(formData.commissionRate),
-        active: true,
-      };
-      const updatedUsers = [...users, newReseller];
-      setUsers(updatedUsers);
-      setUsersState(updatedUsers);
-      toast.success("Reseller baru berhasil ditambahkan");
+    setSubmitting(true);
+    try {
+      if (editingId) {
+        // Find existing to preserve active status
+        const existing = users.find(u => u.id === editingId);
+        await updateSupabaseReseller(editingId, {
+          username: formData.username,
+          displayName: formData.displayName,
+          commissionRate: Number(formData.commissionRate),
+          active: existing?.active ?? true
+        });
+        toast.success("Reseller berhasil diperbarui");
+      } else {
+        await createSupabaseReseller({
+          username: formData.username,
+          password: formData.password,
+          displayName: formData.displayName,
+          commissionRate: Number(formData.commissionRate)
+        });
+        toast.success("Reseller baru berhasil ditambahkan");
+      }
+      setOpen(false);
+      resetForm();
+      loadData(); // reload
+    } catch (error: any) {
+      toast.error("Gagal menyimpan data: " + error.message);
+    } finally {
+      setSubmitting(false);
     }
-    setOpen(false);
-    resetForm();
   };
 
-  const handleToggleActive = (resellerId: string) => {
-    const updatedUsers = users.map(u =>
-      u.id === resellerId ? { ...u, active: !u.active } : u
-    );
-    setUsers(updatedUsers);
-    setUsersState(updatedUsers);
+  const handleToggleActive = async (resellerId: string) => {
     const reseller = users.find(u => u.id === resellerId);
-    toast.success(`${reseller?.displayName} ${reseller?.active ? "dinonaktifkan" : "diaktifkan"}`);
+    if (!reseller) return;
+    
+    // Optimistic UI update
+    setUsersState(prev => prev.map(u => u.id === resellerId ? { ...u, active: !u.active } : u));
+    
+    try {
+      await updateSupabaseReseller(resellerId, {
+        username: reseller.username,
+        displayName: reseller.displayName,
+        commissionRate: reseller.commissionRate,
+        active: !reseller.active
+      });
+      toast.success(`${reseller.displayName} ${!reseller.active ? "diaktifkan" : "dinonaktifkan"}`);
+    } catch (error) {
+      toast.error("Gagal mengubah status");
+      loadData(); // revert on fail
+    }
   };
 
-  const handleToggleCommissionPaid = (orderId: string) => {
-    const allOrders = getOrders();
-    const updated = allOrders.map(o =>
-      o.id === orderId ? { ...o, commissionPaid: !o.commissionPaid } : o
-    );
-    setOrders(updated);
-    setOrdersTick(t => t + 1);
-    toast.success("Status komisi diperbarui");
+  const handleToggleCommissionPaid = async (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Optimistic update
+    setOrdersState(prev => prev.map(o => o.id === orderId ? { ...o, commissionPaid: !o.commissionPaid } : o));
+
+    try {
+      await setSupabaseOrderCommissionPaid(orderId, !order.commissionPaid);
+      toast.success("Status komisi diperbarui");
+    } catch (error) {
+      toast.error("Gagal mengubah status komisi");
+      loadData(); // revert on fail
+    }
   };
 
   const getResellerStats = (resellerId: string) => {
-    const allOrders = getOrders();
-    const resellerOrders = allOrders.filter(o => o.resellerId === resellerId && o.status !== "Cancelled");
-    const totalOrders = allOrders.filter(o => o.resellerId === resellerId).length;
+    const resellerOrders = orders.filter(o => o.resellerId === resellerId && o.status !== "Cancelled");
+    const totalOrders = orders.filter(o => o.resellerId === resellerId).length;
     const totalSales = resellerOrders.reduce((sum, o) => sum + o.price, 0);
     const totalCommission = resellerOrders.reduce((sum, o) => sum + (o.commissionAmount || 0), 0);
     const paidCommission = resellerOrders.filter(o => o.commissionPaid).reduce((sum, o) => sum + (o.commissionAmount || 0), 0);
@@ -121,20 +163,21 @@ export function ResellerManagement() {
 
   const selectedReseller = selectedResellerId ? users.find(u => u.id === selectedResellerId) : null;
   const selectedResellerOrders = selectedResellerId
-    ? getOrders().filter(o => o.resellerId === selectedResellerId)
+    ? orders.filter(o => o.resellerId === selectedResellerId)
     : [];
 
   const totalUnpaidAll = resellers.reduce((sum, r) => sum + getResellerStats(r.id).unpaidCommission, 0);
 
-  // suppress unused warning
-  void ordersTick;
+  if (loading) {
+    return <div className="p-8 flex justify-center items-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
+  }
 
   return (
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-slate-900">Kelola Reseller</h1>
-          <p className="text-slate-500 mt-1">Tambah, edit, dan kelola akun reseller</p>
+          <p className="text-slate-500 mt-1">Tambah, edit, dan kelola akun reseller dari Database Supabase</p>
         </div>
         <Dialog open={open} onOpenChange={handleOpenChange}>
           <DialogTrigger asChild>
@@ -147,33 +190,37 @@ export function ResellerManagement() {
             <DialogHeader>
               <DialogTitle>{editingId ? "Edit Reseller" : "Tambah Reseller Baru"}</DialogTitle>
               <DialogDescription>
-                {editingId ? "Perbarui informasi reseller" : "Buat akun reseller baru"}
+                {editingId ? "Perbarui informasi reseller" : "Buat akun reseller baru ke Supabase"}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label>Username</Label>
-                <Input value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} required />
+                <Label>Username (Tanpa Spasi)</Label>
+                <Input value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/\s/g, '') })} disabled={!!editingId} required placeholder="contoh: bagus123" />
+                {!editingId && <p className="text-xs text-slate-500">Akan dibuatkan email: {formData.username || 'username'}@ikariz.id</p>}
               </div>
-              <div className="space-y-2">
-                <Label>Password</Label>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={e => setFormData({ ...formData, password: e.target.value })}
-                    required
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+              {!editingId && (
+                <div className="space-y-2">
+                  <Label>Password</Label>
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={e => setFormData({ ...formData, password: e.target.value })}
+                      required
+                      className="pr-10"
+                      placeholder="Minimal 6 karakter"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="space-y-2">
                 <Label>Nama Lengkap</Label>
                 <Input value={formData.displayName} onChange={e => setFormData({ ...formData, displayName: e.target.value })} required />
@@ -183,10 +230,11 @@ export function ResellerManagement() {
                 <Input type="number" min="0" max="100" step="0.1" value={formData.commissionRate} onChange={e => setFormData({ ...formData, commissionRate: e.target.value })} required />
               </div>
               <div className="flex gap-3 pt-4">
-                <Button type="submit" className="flex-1 bg-slate-900 hover:bg-slate-800">
+                <Button type="submit" disabled={submitting} className="flex-1 bg-slate-900 hover:bg-slate-800">
+                  {submitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                   {editingId ? "Perbarui" : "Tambah"}
                 </Button>
-                <Button type="button" variant="outline" className="flex-1" onClick={() => handleOpenChange(false)}>
+                <Button type="button" variant="outline" className="flex-1" onClick={() => handleOpenChange(false)} disabled={submitting}>
                   Batal
                 </Button>
               </div>
@@ -275,6 +323,13 @@ export function ResellerManagement() {
                   </TableRow>
                 );
               })}
+              {resellers.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center text-slate-500 py-8">
+                    Belum ada data reseller
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
