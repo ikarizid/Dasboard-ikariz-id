@@ -1,14 +1,33 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { getCurrentUser, getOrders } from "../../lib/mock-data";
+import { getCurrentUser, Order } from "../../lib/mock-data";
+import { getSupabaseOrders } from "../../lib/api";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
-import { Eye, FileText } from "lucide-react";
+import { Eye, FileText, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export function ResellerOrders() {
   const currentUser = getCurrentUser();
-  const orders = getOrders();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const fetchedOrders = await getSupabaseOrders();
+        setOrders(fetchedOrders);
+      } catch (e) {
+        toast.error("Gagal mengambil data pesanan");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
+  }, []);
+
   const myOrders = orders.filter(o => o.resellerId === currentUser?.id);
 
   const formatCurrency = (amount: number) => {
@@ -41,6 +60,10 @@ export function ResellerOrders() {
       </Badge>
     );
   };
+
+  if (loading) {
+    return <div className="p-8 flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
+  }
 
   return (
     <div className="p-8 space-y-8">

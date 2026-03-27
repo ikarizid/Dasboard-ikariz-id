@@ -1,14 +1,17 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { getOrders, getUsers } from "../../lib/mock-data";
+import { Order, User } from "../../lib/mock-data";
+import { getSupabaseOrders, getSupabaseUsers } from "../../lib/api";
+import { toast } from "sonner";
 import { 
   DollarSign, 
   ShoppingBag, 
   TrendingUp, 
   Wallet,
   FileText,
-  Eye
+  Eye,
+  Loader2
 } from "lucide-react";
 import { 
   LineChart, 
@@ -26,8 +29,28 @@ import { Badge } from "../../components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 
 export function OwnerDashboard() {
-  const orders = getOrders();
-  const users = getUsers();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [fetchedUsers, fetchedOrders] = await Promise.all([
+          getSupabaseUsers(),
+          getSupabaseOrders()
+        ]);
+        setUsers(fetchedUsers);
+        setOrders(fetchedOrders);
+      } catch (e) {
+        toast.error("Gagal memuat data dari database");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   const resellers = users.filter(u => u.role === "reseller");
   
   const [selectedReseller, setSelectedReseller] = useState<string>("all");
@@ -109,6 +132,10 @@ export function OwnerDashboard() {
       </Badge>
     );
   };
+
+  if (loading) {
+    return <div className="p-8 flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
+  }
 
   return (
     <div className="p-8 space-y-8">

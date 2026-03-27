@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Separator } from "../components/ui/separator";
-import { getOrders, setOrders, getUsers, getCurrentUser } from "../lib/mock-data";
-import { ArrowLeft, Printer, Download, Edit2, Check, X, Settings } from "lucide-react";
+import { getCurrentUser, Order, User } from "../lib/mock-data";
+import { getSupabaseOrders, getSupabaseUsers, updateSupabaseOrder } from "../lib/api";
+import { ArrowLeft, Printer, Download, Edit2, Check, X, Settings, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function Invoice() {
@@ -13,32 +14,60 @@ export function Invoice() {
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
 
-  const allOrders = getOrders();
-  const users = getUsers();
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const order = allOrders.find(o => o.id === orderId);
-  const reseller = order?.resellerId ? users.find(u => u.id === order.resellerId) : null;
-
+  // Edit states
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingNotes, setEditingNotes] = useState(false);
   const [editingInvoiceNo, setEditingInvoiceNo] = useState(false);
-  const [titleValue, setTitleValue] = useState(order?.invoiceTitle || "Faktur Pembayaran");
-  const [notesValue, setNotesValue] = useState(order?.invoiceNotes || "");
-  const [invoiceNoValue, setInvoiceNoValue] = useState(order?.invoiceNumber || "");
-  const [paymentStatus, setPaymentStatus] = useState<"Lunas" | "Belum Lunas">(
-    order?.status === "Done" ? "Lunas" : "Belum Lunas"
-  );
+  const [titleValue, setTitleValue] = useState("Faktur Pembayaran");
+  const [notesValue, setNotesValue] = useState("");
+  const [invoiceNoValue, setInvoiceNoValue] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState<"Lunas" | "Belum Lunas">("Belum Lunas");
+
+  useEffect(() => {
+    const fetchInvoiceData = async () => {
+      try {
+        const [o, u] = await Promise.all([getSupabaseOrders(), getSupabaseUsers()]);
+        setAllOrders(o);
+        setUsers(u);
+
+        const currentOrder = o.find(orc => orc.id === orderId);
+        if (currentOrder) {
+          setTitleValue(currentOrder.invoiceTitle || "Faktur Pembayaran");
+          setNotesValue(currentOrder.invoiceNotes || "");
+          setInvoiceNoValue(currentOrder.invoiceNumber || "");
+          setPaymentStatus(currentOrder.status === "Done" ? "Lunas" : "Belum Lunas");
+        }
+      } catch (e) {
+        toast.error("Gagal mengambil data faktur");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInvoiceData();
+  }, [orderId]);
+
+  const order = allOrders.find(o => o.id === orderId);
+  const reseller = order?.resellerId ? users.find(u => u.id === order.resellerId) : null;
 
   const handleBack = () => {
     if (currentUser?.role === "owner") navigate("/owner/orders");
     else navigate("/reseller/orders");
   };
 
-  const saveField = (field: "invoiceTitle" | "invoiceNotes" | "invoiceNumber", value: string) => {
+  const saveField = async (field: "invoiceTitle" | "invoiceNotes" | "invoiceNumber", value: string) => {
     if (!order) return;
-    const updated = allOrders.map(o => o.id === order.id ? { ...o, [field]: value } : o);
-    setOrders(updated);
-    toast.success("Tersimpan");
+    try {
+      await updateSupabaseOrder(order.id, { [field]: value });
+      const updated = allOrders.map(o => o.id === order.id ? { ...o, [field]: value } : o);
+      setAllOrders(updated);
+      toast.success("Tersimpan");
+    } catch (e) {
+      toast.error("Gagal menyimpan ke database");
+    }
   };
 
   const formatCurrency = (amount: number) =>
@@ -547,6 +576,10 @@ export function Invoice() {
     w.focus();
     setTimeout(() => { w.print(); }, 600);
   };
+
+  if (loading) {
+     return <div className="p-8 flex justify-center items-center min-h-[50vh]"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
+  }
 
   if (!order) {
     return (

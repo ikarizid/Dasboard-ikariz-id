@@ -1,17 +1,38 @@
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { getCurrentUser, getOrders, getUsers } from "../../lib/mock-data";
-import { DollarSign, ShoppingBag, Wallet, Eye } from "lucide-react";
+import { getCurrentUser, Order, User } from "../../lib/mock-data";
+import { getSupabaseOrders, getSupabaseUsers } from "../../lib/api";
+import { DollarSign, ShoppingBag, Wallet, Eye, Loader2 } from "lucide-react";
 import { Badge } from "../../components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Button } from "../../components/ui/button";
+import { toast } from "sonner";
 
 export function ResellerDashboard() {
   const currentUser = getCurrentUser();
-  const orders = getOrders();
-  const users = getUsers();
-  
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [fetchedUsers, fetchedOrders] = await Promise.all([
+          getSupabaseUsers(),
+          getSupabaseOrders()
+        ]);
+        setUsers(fetchedUsers);
+        setOrders(fetchedOrders);
+      } catch (e) {
+        toast.error("Gagal memanggil data dari database");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   const myOrders = orders.filter(o => o.resellerId === currentUser?.id);
 
   // Calculate metrics
@@ -27,7 +48,6 @@ export function ResellerDashboard() {
     return { totalOrders, totalSales, commission };
   }, [myOrders, currentUser]);
 
-  // Recent orders
   const recentOrders = myOrders.slice(0, 5);
 
   const formatCurrency = (amount: number) => {
@@ -61,6 +81,10 @@ export function ResellerDashboard() {
     );
   };
 
+  if (loading) {
+     return <div className="p-8 flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
+  }
+
   return (
     <div className="p-8 space-y-8">
       <div>
@@ -68,7 +92,6 @@ export function ResellerDashboard() {
         <p className="text-slate-500 mt-1">Selamat datang, {currentUser?.displayName}</p>
       </div>
 
-      {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -80,7 +103,6 @@ export function ResellerDashboard() {
             <p className="text-xs text-slate-500 mt-1">Order yang telah dibuat</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Total Penjualan</CardTitle>
@@ -91,7 +113,6 @@ export function ResellerDashboard() {
             <p className="text-xs text-slate-500 mt-1">Nilai total order</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Komisi Earned</CardTitle>
@@ -104,7 +125,6 @@ export function ResellerDashboard() {
         </Card>
       </div>
 
-      {/* Commission Summary */}
       <Card>
         <CardHeader>
           <CardTitle>Rekap Komisi</CardTitle>
@@ -137,7 +157,6 @@ export function ResellerDashboard() {
         </CardContent>
       </Card>
 
-      {/* Recent Orders Table */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
