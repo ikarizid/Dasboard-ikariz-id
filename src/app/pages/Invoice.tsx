@@ -76,7 +76,7 @@ export function Invoice() {
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 
-  const buildInvoiceHTML = () => {
+  const buildInvoiceHTML = (mode: "print" | "png" = "print") => {
     if (!order) return "";
     const commission = order.commissionAmount || 0;
     const netIncome = order.price - commission;
@@ -99,7 +99,7 @@ export function Invoice() {
     max-width: 750px;
     margin: 0 auto;
     background: white;
-    min-height: 100vh;
+    position: relative;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -110,7 +110,7 @@ export function Invoice() {
     background: #5B0FAB !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    padding: 44px 44px 100px 44px;
+    padding: 30px 44px 70px 44px;
     border-radius: 0 0 0 60px;
   }
 
@@ -124,7 +124,7 @@ export function Invoice() {
 
   .header-title {
     color: white !important;
-    font-size: 60px;
+    font-size: 50px;
     font-weight: 800;
     line-height: 1;
     letter-spacing: -2px;
@@ -132,17 +132,17 @@ export function Invoice() {
 
   .header-sub {
     color: #c4b5fd !important;
-    font-size: 15px;
-    margin-top: 8px;
+    font-size: 14px;
+    margin-top: 6px;
   }
 
   .logo-box {
-    width: 110px;
-    height: 100px;
+    width: 90px;
+    height: 80px;
     background: #7c3aed !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    border-radius: 14px;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -152,7 +152,7 @@ export function Invoice() {
 
   .logo-ik {
     color: white !important;
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 900;
     letter-spacing: -1px;
     line-height: 1;
@@ -160,7 +160,7 @@ export function Invoice() {
 
   .logo-sub {
     color: #c4b5fd !important;
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 600;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -168,8 +168,8 @@ export function Invoice() {
 
   .lime-wrap {
     position: relative;
-    margin-top: -60px;
-    padding: 0 32px;
+    margin-top: -40px;
+    padding: 0 28px;
     z-index: 10;
   }
 
@@ -177,25 +177,25 @@ export function Invoice() {
     background: #CCFF00 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    border-radius: 20px 20px 0 0;
-    padding: 24px 28px 20px 28px;
+    border-radius: 16px 16px 0 0;
+    padding: 16px 24px 14px 24px;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
   }
 
   .invoice-to-label {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     color: #3d3d3d;
     letter-spacing: 0.3px;
   }
 
   .client-name {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 900;
     color: #1a1a1a;
-    margin-top: 6px;
+    margin-top: 4px;
     text-transform: uppercase;
     letter-spacing: -0.5px;
   }
@@ -203,7 +203,7 @@ export function Invoice() {
   .lime-right { text-align: right; }
 
   .inv-no-label {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: #3d3d3d;
     text-transform: uppercase;
@@ -211,25 +211,25 @@ export function Invoice() {
   }
 
   .inv-no-value {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 800;
     color: #1a1a1a;
-    margin-top: 3px;
+    margin-top: 2px;
   }
 
   .date-label {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: #3d3d3d;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-top: 12px;
+    margin-top: 8px;
   }
 
   .date-value {
-    font-size: 12px;
+    font-size: 11px;
     color: #333;
-    margin-top: 3px;
+    margin-top: 2px;
   }
 
   .lime-footer {
@@ -237,28 +237,28 @@ export function Invoice() {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     margin: 0;
-    border-radius: 0 0 20px 20px;
-    padding: 10px 28px 12px;
+    border-radius: 0 0 16px 16px;
+    padding: 8px 24px 10px;
     display: flex;
     justify-content: space-between;
-    font-size: 11px;
+    font-size: 10px;
     color: #3d3d3d;
     font-weight: 600;
     border-top: 1px solid rgba(0,0,0,0.08);
   }
 
-  .body { padding: 32px 44px; }
+  .body { padding: 20px 44px; }
 
   .status-row {
     display: flex;
     justify-content: flex-end;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
 
   .badge {
-    padding: 6px 18px;
+    padding: 4px 14px;
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -267,43 +267,38 @@ export function Invoice() {
   .badge-lunas {
     background: #d1fae5 !important;
     color: #065f46 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
   .badge-belum {
     background: #fee2e2 !important;
     color: #991b1b !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
   .summary-strip {
     background: #f5f3ff !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    border-radius: 10px;
-    padding: 14px 18px;
+    border-radius: 8px;
+    padding: 12px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 28px;
+    margin-bottom: 20px;
   }
 
   .summary-strip .svc {
     font-size: 13px;
     color: #5B0FAB !important;
-    font-weight: 600;
-    max-width: 60%;
+    font-weight: 700;
   }
 
   .summary-strip .price-big {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 800;
     color: #5B0FAB !important;
   }
 
-  .section { margin-bottom: 24px; }
+  .section { margin-bottom: 16px; }
 
   .section-title {
     font-size: 10px;
@@ -311,26 +306,26 @@ export function Invoice() {
     color: #5B0FAB !important;
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    margin-bottom: 14px;
-    padding-bottom: 6px;
+    margin-bottom: 10px;
+    padding-bottom: 4px;
     border-bottom: 2px solid #f3e8ff;
   }
 
   .detail-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    gap: 12px;
   }
 
   .detail-item label {
-    font-size: 11px;
+    font-size: 10px;
     color: #9ca3af;
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
   .detail-item span {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     color: #1a1a1a;
   }
@@ -344,21 +339,21 @@ export function Invoice() {
   hr {
     border: none;
     border-top: 1px solid #f3e8ff;
-    margin: 22px 0;
+    margin: 14px 0;
   }
 
   .price-table { width: 100%; border-collapse: collapse; }
-  .price-table td { padding: 9px 0; font-size: 14px; }
+  .price-table td { padding: 6px 0; font-size: 13px; }
   .price-table .label { color: #6b7280; }
   .price-table .value { text-align: right; font-weight: 600; color: #1a1a1a; }
   .price-table .total-row td {
     border-top: 2px solid #5B0FAB;
-    padding-top: 14px;
+    padding-top: 10px;
     font-weight: 800;
   }
   .price-table .total-row .value {
     color: #5B0FAB !important;
-    font-size: 20px;
+    font-size: 18px;
   }
   .red { color: #dc2626 !important; }
   .green { color: #16a34a !important; }
@@ -369,20 +364,20 @@ export function Invoice() {
     print-color-adjust: exact !important;
     border: 1px solid #e5e7eb;
     border-left: 4px solid #5B0FAB;
-    border-radius: 0 8px 8px 0;
-    padding: 14px 16px;
-    min-height: 54px;
-    font-size: 13px;
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    min-height: 40px;
+    font-size: 12px;
     color: #374151;
-    line-height: 1.7;
+    line-height: 1.6;
   }
 
   .page-footer {
     background: #5B0FAB !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    margin-top: 40px;
-    padding: 24px 44px;
+    margin-top: 24px;
+    padding: 20px 44px;
     text-align: center;
     border-radius: 0 40px 0 0;
   }
@@ -390,14 +385,14 @@ export function Invoice() {
   .footer-brand {
     color: #CCFF00 !important;
     font-weight: 800;
-    font-size: 15px;
-    margin-bottom: 6px;
+    font-size: 13px;
+    margin-bottom: 4px;
   }
 
   .page-footer p {
     color: #e9d5ff !important;
-    font-size: 12px;
-    line-height: 2;
+    font-size: 11px;
+    line-height: 1.8;
   }
 
   @media print {
@@ -455,7 +450,7 @@ export function Invoice() {
     </div>
 
     <div class="summary-strip">
-      <span class="svc">${order.serviceType} — ${order.subject}</span>
+      <span class="svc">Total Harga Tagihan</span>
       <span class="price-big">${formatCurrency(order.price)}</span>
     </div>
 
@@ -547,6 +542,23 @@ export function Invoice() {
   </div>
 
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+  window.onload = function() {
+    if ('${mode}' === 'png') {
+      setTimeout(() => {
+        html2canvas(document.querySelector('.page'), { scale: 2, useCORS: true }).then(canvas => {
+          const link = document.createElement('a');
+          link.download = document.title + '.png';
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        });
+      }, 500);
+    } else {
+      setTimeout(() => window.print(), 600);
+    }
+  }
+</script>
 </body>
 </html>`;
   };
@@ -575,6 +587,21 @@ export function Invoice() {
     w.document.title = fileName;
     w.focus();
     setTimeout(() => { w.print(); }, 600);
+  };
+
+  const handleDownloadPNG = () => {
+    if (!order) return;
+    const invoiceNo = invoiceNoValue.replace(/\//g, "-");
+    const clientName = order.clientName.replace(/\s+/g, "_");
+    const serviceType = order.serviceType.replace(/\s+/g, "_");
+    const fileName = `${clientName}-${serviceType}-${invoiceNo}`;
+    const html = buildInvoiceHTML("png");
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+    w.document.title = fileName;
+    w.focus();
   };
 
   if (loading) {
@@ -620,9 +647,9 @@ export function Invoice() {
             <Printer className="w-4 h-4 mr-2" />
             Cetak
           </Button>
-          <Button variant="outline" onClick={handleDownload}>
-            <Download className="w-4 h-4 mr-2" />
-            Download PDF
+          <Button variant="outline" onClick={handleDownloadPNG}>
+            <Download className="w-4 h-4 mr-2 text-green-600" />
+            Simpan PNG
           </Button>
         </div>
       </div>
