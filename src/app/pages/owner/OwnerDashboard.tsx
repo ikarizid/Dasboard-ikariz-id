@@ -136,59 +136,59 @@ export function OwnerDashboard() {
   };
 
   if (loading) {
-    return <div className="p-8 flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
+    return <div className="p-8 flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-white/50" /></div>;
   }
 
   return (
     <div className="p-8 space-y-8">
       <div>
-        <h1 className="text-3xl font-semibold text-slate-900">Dashboard Owner</h1>
-        <p className="text-slate-500 mt-1">Ringkasan bisnis dan performa reseller</p>
+        <h1 className="text-3xl font-semibold text-white">Dashboard Owner</h1>
+        <p className="text-white/60 mt-1">Ringkasan bisnis dan performa reseller</p>
       </div>
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Total Order</CardTitle>
-            <ShoppingBag className="w-4 h-4 text-slate-400" />
+            <CardTitle className="text-sm font-medium text-white/70">Total Order</CardTitle>
+            <ShoppingBag className="w-4 h-4 text-white/40" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold">{metrics.totalOrders}</div>
-            <p className="text-xs text-slate-500 mt-1">Semua reseller</p>
+            <div className="text-2xl font-semibold text-white">{metrics.totalOrders}</div>
+            <p className="text-xs text-white/50 mt-1">Semua reseller</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Total Pendapatan</CardTitle>
-            <DollarSign className="w-4 h-4 text-slate-400" />
+            <CardTitle className="text-sm font-medium text-white/70">Total Pendapatan</CardTitle>
+            <DollarSign className="w-4 h-4 text-white/40" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold">{safeFormatCurrency(metrics.totalRevenue)}</div>
-            <p className="text-xs text-slate-500 mt-1">Revenue kotor</p>
+            <div className="text-2xl font-semibold text-white">{safeFormatCurrency(metrics.totalRevenue)}</div>
+            <p className="text-xs text-white/50 mt-1">Revenue kotor</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Komisi Dibayarkan</CardTitle>
-            <Wallet className="w-4 h-4 text-slate-400" />
+            <CardTitle className="text-sm font-medium text-white/70">Komisi Dibayarkan</CardTitle>
+            <Wallet className="w-4 h-4 text-white/40" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold">{safeFormatCurrency(metrics.totalCommission)}</div>
-            <p className="text-xs text-slate-500 mt-1">Total komisi reseller</p>
+            <div className="text-2xl font-semibold text-white">{safeFormatCurrency(metrics.totalCommission)}</div>
+            <p className="text-xs text-white/50 mt-1">Total komisi reseller</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Pendapatan Bersih</CardTitle>
-            <TrendingUp className="w-4 h-4 text-slate-400" />
+            <CardTitle className="text-sm font-medium text-white/70">Pendapatan Bersih</CardTitle>
+            <TrendingUp className="w-4 h-4 text-white/40" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold">{safeFormatCurrency(metrics.netProfit)}</div>
-            <p className="text-xs text-slate-500 mt-1">Setelah komisi</p>
+            <div className="text-2xl font-semibold text-white">{safeFormatCurrency(metrics.netProfit)}</div>
+            <p className="text-xs text-white/50 mt-1">Setelah komisi</p>
           </CardContent>
         </Card>
       </div>
@@ -198,8 +198,8 @@ export function OwnerDashboard() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Grafik Pendapatan</CardTitle>
-              <p className="text-sm text-slate-500 mt-1">Pendapatan per bulan</p>
+              <CardTitle className="text-white">Grafik Pendapatan</CardTitle>
+              <p className="text-sm text-white/50 mt-1">Pendapatan per bulan</p>
             </div>
             <Select value={selectedReseller} onValueChange={setSelectedReseller}>
               <SelectTrigger className="w-48">
@@ -219,21 +219,21 @@ export function OwnerDashboard() {
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={revenueByMonth}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="month" stroke="#64748b" />
-              <YAxis stroke="#64748b" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <XAxis dataKey="month" stroke="rgba(255,255,255,0.5)" />
+              <YAxis stroke="rgba(255,255,255,0.5)" />
               <Tooltip 
                 formatter={(value: number) => safeFormatCurrency(value)}
-                contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0' }}
+                contentStyle={{ backgroundColor: 'rgba(20, 10, 40, 0.9)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
               />
               <Legend />
               <Line 
                 type="monotone" 
                 dataKey="revenue" 
-                stroke="#0f172a" 
+                stroke="#ff4b5c" 
                 strokeWidth={2}
                 name="Pendapatan"
-                dot={{ fill: '#0f172a', strokeWidth: 2, r: 4 }}
+                dot={{ fill: '#ff4b5c', strokeWidth: 2, r: 4 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -245,8 +245,8 @@ export function OwnerDashboard() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Order Terbaru</CardTitle>
-              <p className="text-sm text-slate-500 mt-1">5 order terbaru dari semua reseller</p>
+              <CardTitle className="text-white">Order Terbaru</CardTitle>
+              <p className="text-sm text-white/50 mt-1">5 order terbaru dari semua reseller</p>
             </div>
             <Link to="/owner/orders">
               <Button variant="outline" size="sm">

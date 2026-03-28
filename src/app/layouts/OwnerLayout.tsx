@@ -27,8 +27,8 @@ function OwnerLayoutInner() {
   if (!user) return null;
 
   return (
-    <div className="flex h-screen bg-slate-50">
-      <aside className="w-64 bg-slate-900 text-white flex flex-col">
+    <div className="flex h-screen w-full relative">
+      <aside className="w-64 glass-panel text-white flex flex-col z-10 shadow-2xl">
         <div className="p-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
@@ -42,9 +42,9 @@ function OwnerLayoutInner() {
           </div>
         </div>
 
-        <Separator className="bg-slate-800" />
+        <Separator className="bg-white/10" />
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -52,8 +52,8 @@ function OwnerLayoutInner() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                  isActive ? "bg-white text-slate-900" : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                  isActive ? "bg-gradient-to-r from-[#ff4b5c]/20 to-transparent text-[#ff4b5c] border-l-2 border-[#ff4b5c] shadow-sm" : "text-white/70 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -63,14 +63,14 @@ function OwnerLayoutInner() {
           })}
         </nav>
 
-        <div className="p-4 space-y-3">
-          <Separator className="bg-slate-800" />
-          <div className="px-4 py-2">
-            <p className="text-xs text-slate-400">Logged in sebagai</p>
-            <p className="font-medium text-sm">{user.displayName}</p>
-            <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full mt-1 inline-block">Owner</span>
+        <div className="p-4 space-y-4">
+          <Separator className="bg-white/10" />
+          <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/5">
+            <p className="text-xs text-white/50">Logged in sebagai</p>
+            <p className="font-medium text-sm text-white">{user.displayName}</p>
+            <span className="text-[10px] uppercase font-bold tracking-wider bg-[#ff4b5c]/20 text-[#ff4b5c] px-2 py-0.5 rounded-full mt-2 inline-block">Owner</span>
           </div>
-          <Button onClick={handleLogout} variant="ghost" className="w-full justify-start text-slate-300 hover:bg-slate-800 hover:text-white">
+          <Button onClick={handleLogout} variant="ghost" className="w-full justify-start text-white/70 hover:bg-white/10 hover:text-white">
             <LogOut className="w-5 h-5 mr-3" />
             Keluar
           </Button>

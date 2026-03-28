@@ -121,67 +121,71 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50">
-      <div className="hidden lg:flex w-1/2 bg-slate-900 flex-col items-center justify-center p-12 text-white">
-        <div className="max-w-sm text-center space-y-6">
-          <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mx-auto">
-            <span className="font-black text-slate-900 text-2xl">IK</span>
+    <div className="min-h-screen flex items-center justify-center relative p-6 w-full">
+      <div className="w-full max-w-md glass-panel z-10 rounded-[2rem] p-10 shadow-2xl space-y-8 animate-in fade-in zoom-in-95 duration-500 border border-white/10">
+        <div className="text-center space-y-2">
+          <div className="w-16 h-16 bg-gradient-to-tr from-[#ff4b5c] to-[#ff95ac] rounded-2xl flex items-center justify-center mx-auto shadow-xl shadow-[#ff4b5c]/30 mb-6">
+            <span className="font-black text-white text-2xl">IK</span>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold">Ikariz ID</h1>
-            <p className="text-slate-400 mt-1">Group Rekap</p>
-          </div>
-          <p className="text-slate-400 text-sm leading-relaxed">
-            Platform manajemen order dan rekap bisnis joki tugas & skripsi terpercaya.
-          </p>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Ikariz ID</h1>
+          <p className="text-white/60 text-sm">Masuk log ke dashboard Anda</p>
         </div>
-      </div>
 
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-sm space-y-8">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900">Masuk Aplikasi</h2>
-            <p className="text-slate-500 text-sm mt-1">Gunakan Email (Owner) / Username (Reseller)</p>
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="username" className="text-white/80">Email / Username</Label>
+            <Input 
+              id="username" 
+              type="text" 
+              value={username} 
+              onChange={e => setUsername(e.target.value)} 
+              placeholder="email@domain.com / reseller123" 
+              required 
+              autoComplete="username" 
+              className="bg-black/20 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-[#ff4b5c]/50 h-12 rounded-xl"
+            />
           </div>
-
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="username">Email / Username</Label>
-              <Input id="username" type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="email@domain.com atau awit123" required autoComplete="username" />
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-white/80">Password</Label>
+            <div className="relative">
+              <Input 
+                id="password" 
+                type={showPassword ? "text" : "password"} 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                placeholder="••••••••" 
+                required 
+                className="pr-10 bg-black/20 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-[#ff4b5c]/50 h-12 rounded-xl" 
+                autoComplete="current-password" 
+              />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors">
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Masukkan password" required className="pr-10" autoComplete="current-password" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-            <Button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 h-11" disabled={loading}>
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Memproses...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <Lock className="w-4 h-4" />
-                  Masuk ke Dashboard
-                </span>
-              )}
+          </div>
+          <Button type="submit" className="w-full h-12 text-base font-semibold mt-4 rounded-xl shadow-xl hover:shadow-2xl transition-all" disabled={loading}>
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Masuk...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                Masuk ke Dashboard
+              </span>
+            )}
+          </Button>
+          
+          <div className="pt-4">
+            <Button type="button" variant="outline" className="w-full h-12 text-xs rounded-xl border-white/10 hover:bg-white/5 active:bg-white/10" onClick={handleInitOwner} disabled={loading}>
+              <UserPlus className="w-4 h-4 mr-2 text-[#ff4b5c]" />
+              Setup Owner ({username || '...'})
             </Button>
-            
-            <div className="pt-2">
-              <Button type="button" variant="outline" className="w-full h-11 text-xs" onClick={handleInitOwner} disabled={loading}>
-                <UserPlus className="w-3 h-3 mr-2" />
-                Developer: Buat Akun Owner Pertama ({username || '...'})
-              </Button>
-            </div>
-          </form>
+          </div>
+        </form>
 
-          <p className="text-center text-xs text-slate-400">© 2026 Ikariz ID · Semua hak dilindungi</p>
-        </div>
+        <p className="text-center text-xs text-white/40 pt-4">© 2026 Ikariz ID · Group Rekap</p>
       </div>
     </div>
   );
