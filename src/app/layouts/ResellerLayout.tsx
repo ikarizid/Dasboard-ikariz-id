@@ -1,14 +1,16 @@
 import { Outlet, useNavigate, useLocation, Link } from "react-router";
 import { getCurrentUser, logout } from "../lib/mock-data";
-import { LayoutDashboard, ShoppingCart, PlusCircle, LogOut } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, PlusCircle, LogOut, Menu } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Separator } from "../components/ui/separator";
 import { ProtectedRoute } from "../components/ProtectedRoute";
+import { useState } from "react";
 
 function ResellerLayoutInner() {
   const navigate = useNavigate();
   const location = useLocation();
   const user = getCurrentUser();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const handleLogout = () => {
     logout();
@@ -24,9 +26,10 @@ function ResellerLayoutInner() {
   if (!user) return null;
 
   return (
-    <div className="flex h-screen w-full relative">
-      <aside className="w-64 glass-panel text-white flex flex-col z-10 shadow-2xl">
-        <div className="p-5">
+    <div className="flex h-screen w-full relative overflow-hidden">
+      <aside className={`glass-panel text-white flex flex-col z-20 shadow-2xl transition-all duration-300 overflow-hidden ${isSidebarOpen ? "w-64" : "w-0"}`}>
+        <div className="w-64 flex flex-col h-full shrink-0">
+          <div className="p-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
               <span className="font-bold text-slate-900 text-xs">IK</span>
@@ -72,10 +75,23 @@ function ResellerLayoutInner() {
             Keluar
           </Button>
         </div>
+        </div>
       </aside>
 
-      <main className="flex-1 overflow-auto">
-        <Outlet />
+      <main className="flex-1 relative flex flex-col min-w-0">
+        <div className="absolute top-6 right-8 z-50">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+            className="text-slate-500 hover:bg-slate-100 bg-white/80 backdrop-blur-md border border-slate-200 shadow-sm"
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+        </div>
+        <div className="flex-1 overflow-auto">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

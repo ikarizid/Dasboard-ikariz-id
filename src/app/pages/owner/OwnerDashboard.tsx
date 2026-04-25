@@ -77,19 +77,28 @@ export function OwnerDashboard() {
 
   // Revenue by month
   const revenueByMonth = useMemo(() => {
-    const monthlyData: Record<string, number> = {
-      "Jan": 0,
-      "Feb": 0,
-      "Mar": 0,
-    };
+    const monthlyData: Record<string, number> = {};
+    const currentDate = new Date();
+    const currentMonthIndex = currentDate.getMonth();
+    const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+
+    // Initialize months from Jan up to current month
+    for (let i = 0; i <= currentMonthIndex; i++) {
+        monthlyData[MONTH_NAMES[i]] = 0;
+    }
 
     orders.forEach(order => {
       if (order.status === "Cancelled") return;
       if (selectedReseller !== "all" && order.resellerId !== selectedReseller) return;
       
-      const month = new Date(order.orderDate).toLocaleString('id-ID', { month: 'short' });
-      if (monthlyData[month] !== undefined) {
-        monthlyData[month] += (Number(order.price) || 0);
+      const orderDate = new Date(order.orderDate);
+      if (orderDate.getFullYear() !== currentDate.getFullYear()) return; // Only include current year
+
+      const monthIndex = orderDate.getMonth();
+      const monthLabel = MONTH_NAMES[monthIndex];
+      
+      if (monthlyData[monthLabel] !== undefined) {
+        monthlyData[monthLabel] += (Number(order.price) || 0);
       }
     });
 
