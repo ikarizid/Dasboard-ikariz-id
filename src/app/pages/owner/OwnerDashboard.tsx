@@ -151,8 +151,8 @@ export function OwnerDashboard() {
   return (
     <div className="p-8 space-y-8">
       <div>
-        <h1 className="text-3xl font-semibold text-white">Dashboard Owner</h1>
-        <p className="text-white/60 mt-1">Ringkasan bisnis dan performa reseller</p>
+        <h1 className="text-3xl font-semibold text-white">REKAP JOKI IKARIZ.ID</h1>
+        <p className="text-white/60 mt-1">NAMA DASBORD OWNER MALIK AL AZIS</p>
       </div>
 
       {/* Metrics Cards */}
