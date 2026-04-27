@@ -152,7 +152,7 @@ export function OwnerDashboard() {
     <div className="p-8 space-y-8">
       <div>
         <h1 className="text-3xl font-semibold text-white">REKAP JOKI IKARIZ.ID</h1>
-        <p className="text-white/60 mt-1">NAMA DASBORD OWNER MALIK AL AZIS</p>
+        <p className="text-white/60 mt-1"> DASBOARD OWNER MALIK AL AZIS</p>
       </div>
 
       {/* Metrics Cards */}
@@ -230,7 +230,11 @@ export function OwnerDashboard() {
             <LineChart data={revenueByMonth}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis dataKey="month" stroke="rgba(255,255,255,0.5)" />
-              <YAxis stroke="rgba(255,255,255,0.5)" />
+              <YAxis 
+                stroke="rgba(255,255,255,0.5)" 
+                tickFormatter={(value) => new Intl.NumberFormat('id-ID', { notation: 'compact', compactDisplay: 'short', maximumFractionDigits: 1 }).format(value)}
+                width={65}
+              />
               <Tooltip 
                 formatter={(value: number) => safeFormatCurrency(value)}
                 contentStyle={{ backgroundColor: 'rgba(20, 10, 40, 0.9)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
