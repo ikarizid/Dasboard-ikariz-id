@@ -7,10 +7,23 @@ import {
   CalendarRange,
   Trophy,
   Sparkles,
+  FileText,
+  BookOpen,
+  GraduationCap,
+  PenTool,
+  ClipboardList,
+  ScrollText,
+  MoreHorizontal,
 } from "lucide-react";
 
 interface TaskCompletionBannerProps {
   orders: Order[];
+}
+
+interface ServiceBreakdown {
+  type: string;
+  total: number;
+  done: number;
 }
 
 interface PeriodData {
@@ -18,9 +31,44 @@ interface PeriodData {
   icon: React.ElementType;
   done: number;
   total: number;
+  orders: Order[];
   gradient: string;
   glowColor: string;
   iconBg: string;
+  accentColor: string;
+}
+
+const SERVICE_ICONS: Record<string, React.ElementType> = {
+  "Skripsi": GraduationCap,
+  "Tesis": GraduationCap,
+  "Makalah": FileText,
+  "Essay": PenTool,
+  "Tugas": ClipboardList,
+  "Laporan": ScrollText,
+  "Lainnya": MoreHorizontal,
+};
+
+const SERVICE_COLORS: Record<string, string> = {
+  "Skripsi": "from-rose-500/80 to-pink-500/80",
+  "Tesis": "from-violet-500/80 to-purple-500/80",
+  "Makalah": "from-sky-500/80 to-blue-500/80",
+  "Essay": "from-amber-500/80 to-orange-500/80",
+  "Tugas": "from-emerald-500/80 to-teal-500/80",
+  "Laporan": "from-cyan-500/80 to-blue-400/80",
+  "Lainnya": "from-gray-400/80 to-slate-500/80",
+};
+
+function getServiceBreakdown(periodOrders: Order[]): ServiceBreakdown[] {
+  const map: Record<string, { total: number; done: number }> = {};
+  periodOrders.forEach((o) => {
+    const t = o.serviceType || "Lainnya";
+    if (!map[t]) map[t] = { total: 0, done: 0 };
+    map[t].total++;
+    if (o.status === "Done") map[t].done++;
+  });
+  return Object.entries(map)
+    .map(([type, data]) => ({ type, ...data }))
+    .sort((a, b) => b.total - a.total);
 }
 
 export function TaskCompletionBanner({ orders }: TaskCompletionBannerProps) {
@@ -65,27 +113,33 @@ export function TaskCompletionBanner({ orders }: TaskCompletionBannerProps) {
         icon: CalendarCheck,
         done: todayDone,
         total: todayOrders.length,
+        orders: todayOrders,
         gradient: "from-emerald-500/20 via-emerald-600/10 to-teal-500/20",
         glowColor: "shadow-emerald-500/10",
         iconBg: "bg-emerald-500/20",
+        accentColor: "emerald",
       },
       {
         label: "Mingguan",
         icon: CalendarDays,
         done: weekDone,
         total: weekOrders.length,
+        orders: weekOrders,
         gradient: "from-blue-500/20 via-indigo-500/10 to-cyan-500/20",
         glowColor: "shadow-blue-500/10",
         iconBg: "bg-blue-500/20",
+        accentColor: "blue",
       },
       {
         label: "Bulanan",
         icon: CalendarRange,
         done: monthDone,
         total: monthOrders.length,
+        orders: monthOrders,
         gradient: "from-violet-500/20 via-purple-500/10 to-fuchsia-500/20",
         glowColor: "shadow-violet-500/10",
         iconBg: "bg-violet-500/20",
+        accentColor: "violet",
       },
     ];
   }, [orders]);
@@ -99,6 +153,7 @@ export function TaskCompletionBanner({ orders }: TaskCompletionBannerProps) {
             ? Math.round((period.done / period.total) * 100)
             : 0;
         const isComplete = period.total > 0 && period.done === period.total;
+        const breakdown = getServiceBreakdown(period.orders);
 
         return (
           <motion.div
@@ -166,6 +221,55 @@ export function TaskCompletionBanner({ orders }: TaskCompletionBannerProps) {
                 <Trophy className="w-5 h-5 text-amber-400 ml-auto mb-1 animate-bounce" />
               )}
             </div>
+
+            {/* Service Type Breakdown */}
+            {breakdown.length > 0 && (
+              <div className="relative z-10 mb-4">
+                <div className="flex flex-wrap gap-1.5">
+                  {breakdown.map((item) => {
+                    const SvcIcon = SERVICE_ICONS[item.type] || BookOpen;
+                    const colorClass = SERVICE_COLORS[item.type] || SERVICE_COLORS["Lainnya"];
+                    const allDone = item.done === item.total;
+                    return (
+                      <motion.div
+                        key={item.type}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.1 + 0.3, duration: 0.3 }}
+                        className={`
+                          flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
+                          bg-gradient-to-r ${colorClass}
+                          border border-white/10
+                          ${allDone ? "ring-1 ring-emerald-400/50" : ""}
+                          transition-all duration-200 hover:scale-105
+                        `}
+                      >
+                        <SvcIcon className="w-3 h-3 text-white/90 shrink-0" />
+                        <span className="text-[11px] font-semibold text-white whitespace-nowrap">
+                          {item.total} {item.type}
+                        </span>
+                        {item.done > 0 && (
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                            allDone
+                              ? "bg-emerald-400/30 text-emerald-200"
+                              : "bg-black/20 text-white/70"
+                          }`}>
+                            {item.done}/{item.total} ✓
+                          </span>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {breakdown.length === 0 && (
+              <div className="relative z-10 mb-4 py-2 text-center">
+                <p className="text-white/30 text-xs italic">Belum ada tugas</p>
+              </div>
+            )}
 
             {/* Progress bar */}
             <div className="relative z-10">
