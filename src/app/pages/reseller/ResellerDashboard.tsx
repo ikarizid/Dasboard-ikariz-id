@@ -8,6 +8,7 @@ import { Badge } from "../../components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Button } from "../../components/ui/button";
 import { toast } from "sonner";
+import { DeadlinePanel } from "../../components/DeadlinePanel";
 
 export function ResellerDashboard() {
   const currentUser = getCurrentUser();
@@ -91,6 +92,13 @@ export function ResellerDashboard() {
         <h1 className="text-3xl font-semibold text-slate-900">Dashboard Reseller</h1>
         <p className="text-slate-500 mt-1">Selamat datang, {currentUser?.displayName}</p>
       </div>
+
+      {/* Deadline Notification Panel */}
+      <DeadlinePanel
+        orders={orders}
+        basePath="reseller"
+        currentUserId={currentUser?.id}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>

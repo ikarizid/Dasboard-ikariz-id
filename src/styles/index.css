@@ -50,6 +50,22 @@ body {
   background: rgba(255, 255, 255, 0.2);
 }
 
+/* Named class for components that need custom scroll */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
 @media print {
   /* Sembunyikan sidebar dan layout wrapper */
   aside,

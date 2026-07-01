@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useLocation, Link } from "react-router";
 import { getCurrentUser, logout } from "../lib/mock-data";
-import { LayoutDashboard, Users, ShoppingCart, PlusCircle, LogOut, FileDigit, CreditCard, Menu } from "lucide-react";
+import { LayoutDashboard, Users, ShoppingCart, PlusCircle, LogOut, FileDigit, CreditCard, Menu, FileSpreadsheet } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Separator } from "../components/ui/separator";
 import { ProtectedRoute } from "../components/ProtectedRoute";
@@ -24,6 +24,7 @@ function OwnerLayoutInner() {
     { path: "/owner/orders", icon: ShoppingCart, label: "Semua Order" },
     { path: "/owner/new-order", icon: PlusCircle, label: "Tambah Order" },
     { path: "/owner/invoice-settings", icon: FileDigit, label: "Setting Invoice" },
+    { path: "/owner/import-export", icon: FileSpreadsheet, label: "Import / Export" },
   ];
 
   if (!user) return null;

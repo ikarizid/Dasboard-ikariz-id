@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Order, User } from "../../lib/mock-data";
 import { getSupabaseOrders, getSupabaseUsers } from "../../lib/api";
 import { toast } from "sonner";
+import { checkAndSendReminders } from "../../lib/notification";
+import { DeadlinePanel } from "../../components/DeadlinePanel";
+import { TaskCompletionBanner } from "../../components/TaskCompletionBanner";
 import { 
   DollarSign, 
   ShoppingBag, 
@@ -42,6 +45,11 @@ export function OwnerDashboard() {
         ]);
         setUsers(fetchedUsers);
         setOrders(fetchedOrders);
+        // Cek & kirim WA reminder H-2 setelah data dimuat
+        await checkAndSendReminders(fetchedOrders, (resellerId) => {
+          const u = fetchedUsers.find((u) => u.id === resellerId);
+          return u?.displayName || "-";
+        });
       } catch (e) {
         toast.error("Gagal memuat data dari database");
       } finally {
@@ -154,6 +162,16 @@ export function OwnerDashboard() {
         <h1 className="text-3xl font-semibold text-white">REKAP JOKI IKARIZ.ID</h1>
         <p className="text-white/60 mt-1"> DASBOARD OWNER MALIK AL AZIS</p>
       </div>
+
+      {/* Deadline Notification Panel */}
+      <DeadlinePanel
+        orders={orders}
+        users={users}
+        basePath="owner"
+      />
+
+      {/* Task Completion Banner */}
+      <TaskCompletionBanner orders={orders} />
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
