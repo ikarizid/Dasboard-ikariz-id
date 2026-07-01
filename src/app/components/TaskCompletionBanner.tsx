@@ -39,29 +39,31 @@ interface PeriodData {
 }
 
 const SERVICE_ICONS: Record<string, React.ElementType> = {
-  "Skripsi": GraduationCap,
-  "Tesis": GraduationCap,
-  "Makalah": FileText,
-  "Essay": PenTool,
-  "Tugas": ClipboardList,
-  "Laporan": ScrollText,
-  "Lainnya": MoreHorizontal,
+  "SKRIPSI BAB 1-3": GraduationCap,
+  "SKRIPSI FULL": GraduationCap,
+  "ARTIKEL/ JURNAL NO AKRED": FileText,
+  "ARTIKEL / JURNAL AKRED SINTA 5-3": ScrollText,
+  "MAKALAH": BookOpen,
+  "PPT": ClipboardList,
+  "PAPER RESUM": PenTool,
+  "TUGAS RINGAN": MoreHorizontal,
 };
 
 const SERVICE_COLORS: Record<string, string> = {
-  "Skripsi": "from-rose-500/80 to-pink-500/80",
-  "Tesis": "from-violet-500/80 to-purple-500/80",
-  "Makalah": "from-sky-500/80 to-blue-500/80",
-  "Essay": "from-amber-500/80 to-orange-500/80",
-  "Tugas": "from-emerald-500/80 to-teal-500/80",
-  "Laporan": "from-cyan-500/80 to-blue-400/80",
-  "Lainnya": "from-gray-400/80 to-slate-500/80",
+  "SKRIPSI BAB 1-3": "from-rose-500/80 to-pink-500/80",
+  "SKRIPSI FULL": "from-rose-600/80 to-pink-600/80",
+  "ARTIKEL/ JURNAL NO AKRED": "from-violet-500/80 to-purple-500/80",
+  "ARTIKEL / JURNAL AKRED SINTA 5-3": "from-indigo-500/80 to-blue-600/80",
+  "MAKALAH": "from-sky-500/80 to-blue-500/80",
+  "PPT": "from-amber-500/80 to-orange-500/80",
+  "PAPER RESUM": "from-emerald-500/80 to-teal-500/80",
+  "TUGAS RINGAN": "from-cyan-500/80 to-blue-400/80",
 };
 
 function getServiceBreakdown(periodOrders: Order[]): ServiceBreakdown[] {
   const map: Record<string, { total: number; done: number }> = {};
   periodOrders.forEach((o) => {
-    const t = o.serviceType || "Lainnya";
+    const t = o.serviceType || "TUGAS RINGAN";
     if (!map[t]) map[t] = { total: 0, done: 0 };
     map[t].total++;
     if (o.status === "Done") map[t].done++;

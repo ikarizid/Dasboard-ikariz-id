@@ -49,7 +49,7 @@ const TEMPLATE_COLUMNS = [
   "Catatan",
 ];
 
-const VALID_SERVICE_TYPES = ["Tugas", "Skripsi", "Makalah", "Essay", "Laporan", "Tesis", "Lainnya"];
+const VALID_SERVICE_TYPES = ["SKRIPSI BAB 1-3", "SKRIPSI FULL", "ARTIKEL/ JURNAL NO AKRED", "ARTIKEL / JURNAL AKRED SINTA 5-3", "MAKALAH", "PPT", "PAPER RESUM", "TUGAS RINGAN"];
 const VALID_PRIORITIES = ["Tinggi", "Sedang", "Rendah"];
 
 interface ParsedRow {

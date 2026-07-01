@@ -135,13 +135,14 @@ export function NewOrder() {
                 <Select value={formData.serviceType} onValueChange={v => setFormData({ ...formData, serviceType: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Tugas">Tugas</SelectItem>
-                    <SelectItem value="Skripsi">Skripsi</SelectItem>
-                    <SelectItem value="Makalah">Makalah</SelectItem>
-                    <SelectItem value="Essay">Essay</SelectItem>
-                    <SelectItem value="Laporan">Laporan</SelectItem>
-                    <SelectItem value="Tesis">Tesis</SelectItem>
-                    <SelectItem value="Lainnya">Lainnya</SelectItem>
+                    <SelectItem value="SKRIPSI BAB 1-3">SKRIPSI BAB 1-3</SelectItem>
+                    <SelectItem value="SKRIPSI FULL">SKRIPSI FULL</SelectItem>
+                    <SelectItem value="ARTIKEL/ JURNAL NO AKRED">ARTIKEL/ JURNAL NO AKRED</SelectItem>
+                    <SelectItem value="ARTIKEL / JURNAL AKRED SINTA 5-3">ARTIKEL / JURNAL AKRED SINTA 5-3</SelectItem>
+                    <SelectItem value="MAKALAH">MAKALAH</SelectItem>
+                    <SelectItem value="PPT">PPT</SelectItem>
+                    <SelectItem value="PAPER RESUM">PAPER RESUM</SelectItem>
+                    <SelectItem value="TUGAS RINGAN">TUGAS RINGAN</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
