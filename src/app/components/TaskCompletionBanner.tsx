@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Order } from "../lib/mock-data";
 import { motion } from "motion/react";
 import {
@@ -15,6 +15,7 @@ import {
   ScrollText,
   MoreHorizontal,
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 interface TaskCompletionBannerProps {
   orders: Order[];
@@ -80,6 +81,8 @@ function getServiceBreakdown(periodOrders: Order[]): ServiceBreakdown[] {
 }
 
 export function TaskCompletionBanner({ orders }: TaskCompletionBannerProps) {
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
+
   const periods = useMemo<PeriodData[]>(() => {
     const now = new Date();
     const todayStr = now.toISOString().split("T")[0];
@@ -104,11 +107,11 @@ export function TaskCompletionBanner({ orders }: TaskCompletionBannerProps) {
     });
     const weekDone = weekOrders.filter((o) => o.status === "Done").length;
 
-    // — BULANAN: deadline di bulan & tahun ini
+    // — BULANAN: deadline di bulan yang dipilih & tahun ini
     const monthOrders = orders.filter((o) => {
       const d = new Date(o.deadline);
       return (
-        d.getMonth() === now.getMonth() &&
+        d.getMonth() === selectedMonth &&
         d.getFullYear() === now.getFullYear() &&
         o.status !== "Cancelled"
       );
@@ -150,7 +153,7 @@ export function TaskCompletionBanner({ orders }: TaskCompletionBannerProps) {
         accentColor: "violet",
       },
     ];
-  }, [orders]);
+  }, [orders, selectedMonth]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -181,10 +184,10 @@ export function TaskCompletionBanner({ orders }: TaskCompletionBannerProps) {
             <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-white/5 blur-2xl group-hover:bg-white/10 transition-all duration-500" />
 
             {/* Header row */}
-            <div className="flex items-center justify-between mb-4 relative z-10">
+            <div className="flex items-start justify-between mb-4 relative z-10">
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-10 h-10 rounded-xl ${period.iconBg} flex items-center justify-center`}
+                  className={`w-10 h-10 rounded-xl ${period.iconBg} flex items-center justify-center shrink-0`}
                 >
                   <Icon className="w-5 h-5 text-white/80" />
                 </div>
@@ -198,23 +201,39 @@ export function TaskCompletionBanner({ orders }: TaskCompletionBannerProps) {
                 </div>
               </div>
 
-              {isComplete && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 260,
-                    damping: 20,
-                    delay: i * 0.1 + 0.3,
-                  }}
-                >
-                  <div className="flex items-center gap-1 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-1 rounded-full border border-emerald-500/30">
-                    <Sparkles className="w-3 h-3" />
-                    COMPLETE!
+              <div className="flex flex-col items-end gap-2">
+                {period.label === "Bulanan" && (
+                  <div className="pointer-events-auto z-50">
+                    <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(Number(v))}>
+                      <SelectTrigger className="h-7 text-xs bg-white/10 border-white/20 text-white w-[110px] hover:bg-white/20 focus:ring-0 focus:ring-offset-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"].map((m, i) => (
+                          <SelectItem key={i} value={i.toString()}>{m}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                </motion.div>
-              )}
+                )}
+                {isComplete && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 260,
+                      damping: 20,
+                      delay: i * 0.1 + 0.3,
+                    }}
+                  >
+                    <div className="flex items-center gap-1 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-1 rounded-full border border-emerald-500/30">
+                      <Sparkles className="w-3 h-3" />
+                      COMPLETE!
+                    </div>
+                  </motion.div>
+                )}
+              </div>
             </div>
 
             {/* Numbers */}
