@@ -12,6 +12,7 @@ import { Badge } from "../../components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "../../components/ui/dialog";
 import { Eye, FileText, Trash2, Edit, UploadCloud, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { Checkbox } from "../../components/ui/checkbox";
 
 export function OwnerOrders() {
   const [orders, setOrdersState] = useState<Order[]>([]);
@@ -22,6 +23,10 @@ export function OwnerOrders() {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  
+  // Bulk Action State
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   
   // Edit Form State
   const [formData, setFormData] = useState<Partial<Order>>({});
@@ -60,6 +65,53 @@ export function OwnerOrders() {
     } catch (error) {
       toast.error("Gagal mengubah status");
       loadData();
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedOrderIds(orders.map(o => o.id));
+    } else {
+      setSelectedOrderIds([]);
+    }
+  };
+
+  const handleSelectRow = (orderId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedOrderIds(prev => [...prev, orderId]);
+    } else {
+      setSelectedOrderIds(prev => prev.filter(id => id !== orderId));
+    }
+  };
+
+  const executeBulkDelete = async () => {
+    setSubmitting(true);
+    try {
+      await Promise.all(selectedOrderIds.map(id => deleteSupabaseOrder(id)));
+      toast.success(`${selectedOrderIds.length} order berhasil dihapus`);
+      setSelectedOrderIds([]);
+      setBulkDeleteOpen(false);
+      loadData();
+    } catch (error: any) {
+      toast.error("Gagal menghapus order secara massal: " + error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleBulkStatusChange = async (newStatus: string) => {
+    if (selectedOrderIds.length === 0) return;
+    
+    // Optimistic UI update
+    setOrdersState(prev => prev.map(o => selectedOrderIds.includes(o.id) ? { ...o, status: newStatus as any } : o));
+    
+    try {
+      await Promise.all(selectedOrderIds.map(id => updateSupabaseOrder(id, { status: newStatus as any })));
+      toast.success(`Status ${selectedOrderIds.length} order diperbarui menjadi ${newStatus}`);
+      setSelectedOrderIds([]); // Clear selection after bulk update
+    } catch (error: any) {
+      toast.error("Gagal mengubah status secara massal: " + error.message);
+      loadData(); // Revert on failure
     }
   };
 
@@ -163,14 +215,44 @@ export function OwnerOrders() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <CardTitle>Daftar Order ({orders.length})</CardTitle>
+          
+          {selectedOrderIds.length > 0 && (
+            <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-md border border-slate-200">
+              <span className="text-sm font-medium text-slate-700 px-2">{selectedOrderIds.length} dipilih</span>
+              <div className="h-4 w-[1px] bg-slate-300 mx-1"></div>
+              
+              <Select onValueChange={handleBulkStatusChange}>
+                <SelectTrigger className="w-36 h-8 text-xs bg-white">
+                  <SelectValue placeholder="Ubah Status..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="In Progress">In Progress</SelectItem>
+                  <SelectItem value="Done">Done</SelectItem>
+                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Button variant="destructive" size="sm" className="h-8" onClick={() => setBulkDeleteOpen(true)}>
+                <Trash2 className="w-4 h-4 mr-1" /> Hapus
+              </Button>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox 
+                      checked={orders.length > 0 && selectedOrderIds.length === orders.length}
+                      onCheckedChange={handleSelectAll}
+                      aria-label="Pilih semua"
+                    />
+                  </TableHead>
                   <TableHead>Invoice</TableHead>
                   <TableHead>Klien</TableHead>
                   <TableHead>Layanan / Subjek</TableHead>
@@ -186,8 +268,16 @@ export function OwnerOrders() {
               <TableBody>
                 {orders.map(order => {
                   const reseller = resellers.find(r => r.id === order.resellerId);
+                  const isSelected = selectedOrderIds.includes(order.id);
                   return (
-                    <TableRow key={order.id}>
+                    <TableRow key={order.id} className={isSelected ? "bg-slate-50/50" : ""}>
+                      <TableCell>
+                        <Checkbox 
+                          checked={isSelected}
+                          onCheckedChange={(checked) => handleSelectRow(order.id, checked as boolean)}
+                          aria-label={`Pilih order ${order.invoiceNumber}`}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium whitespace-nowrap">{order.invoiceNumber}</TableCell>
                       <TableCell className="whitespace-nowrap">{order.clientName}</TableCell>
                       <TableCell className="max-w-[200px] truncate">
@@ -267,6 +357,24 @@ export function OwnerOrders() {
             <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={submitting}>Batal</Button>
             <Button variant="destructive" onClick={executeDelete} disabled={submitting}>
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ya, Hapus"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Konfirmasi Hapus Massal</DialogTitle>
+            <DialogDescription>
+              Apakah Anda yakin ingin menghapus <strong>{selectedOrderIds.length}</strong> order yang dipilih? Tindakan ini tidak dapat dibatalkan.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setBulkDeleteOpen(false)} disabled={submitting}>Batal</Button>
+            <Button variant="destructive" onClick={executeBulkDelete} disabled={submitting}>
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ya, Hapus Semua"}
             </Button>
           </DialogFooter>
         </DialogContent>
