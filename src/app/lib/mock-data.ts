@@ -13,7 +13,7 @@ export interface User {
 export interface Order {
   id: string;
   clientName: string;
-  serviceType: "SKRIPSI BAB 1-3" | "SKRIPSI FULL" | "ARTIKEL/ JURNAL NO AKRED" | "ARTIKEL / JURNAL AKRED SINTA 5-3" | "MAKALAH" | "PPT" | "PAPER RESUM" | "TUGAS RINGAN";
+  serviceType: "SKRIPSI BAB 1-3" | "SKRIPSI FULL" | "ARTIKEL/ JURNAL NO AKRED" | "ARTIKEL / JURNAL AKRED SINTA 5-3" | "MAKALAH" | "PPT" | "PAPER RESUM" | "TUGAS RINGAN" | "TUGAS LAINYA" | "TUGAS UAS" | "TUGAS UTS";
   subject: string;
   orderDate: string;
   deadline: string;

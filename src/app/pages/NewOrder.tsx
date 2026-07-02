@@ -143,6 +143,9 @@ export function NewOrder() {
                     <SelectItem value="PPT">PPT</SelectItem>
                     <SelectItem value="PAPER RESUM">PAPER RESUM</SelectItem>
                     <SelectItem value="TUGAS RINGAN">TUGAS RINGAN</SelectItem>
+                    <SelectItem value="TUGAS LAINYA">TUGAS LAINYA</SelectItem>
+                    <SelectItem value="TUGAS UAS">TUGAS UAS</SelectItem>
+                    <SelectItem value="TUGAS UTS">TUGAS UTS</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -47,6 +47,9 @@ const SERVICE_ICONS: Record<string, React.ElementType> = {
   "PPT": ClipboardList,
   "PAPER RESUM": PenTool,
   "TUGAS RINGAN": MoreHorizontal,
+  "TUGAS LAINYA": MoreHorizontal,
+  "TUGAS UAS": ClipboardList,
+  "TUGAS UTS": ClipboardList,
 };
 
 const SERVICE_COLORS: Record<string, string> = {
@@ -58,12 +61,15 @@ const SERVICE_COLORS: Record<string, string> = {
   "PPT": "from-amber-500/80 to-orange-500/80",
   "PAPER RESUM": "from-emerald-500/80 to-teal-500/80",
   "TUGAS RINGAN": "from-cyan-500/80 to-blue-400/80",
+  "TUGAS LAINYA": "from-gray-500/80 to-slate-400/80",
+  "TUGAS UAS": "from-red-500/80 to-orange-500/80",
+  "TUGAS UTS": "from-yellow-500/80 to-amber-500/80",
 };
 
 function getServiceBreakdown(periodOrders: Order[]): ServiceBreakdown[] {
   const map: Record<string, { total: number; done: number }> = {};
   periodOrders.forEach((o) => {
-    const t = o.serviceType || "TUGAS RINGAN";
+    const t = o.serviceType || "TUGAS LAINYA";
     if (!map[t]) map[t] = { total: 0, done: 0 };
     map[t].total++;
     if (o.status === "Done") map[t].done++;
